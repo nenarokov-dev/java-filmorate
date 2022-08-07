@@ -25,7 +25,7 @@ public class UserController {
         return new ArrayList<>(userStorage.values());
     }
 
-    @PutMapping("/user")
+    @PutMapping("/users")
     public User putUser(@RequestBody User user) {
         if (!userStorage.containsKey(user.getId())) {
             log.info("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
@@ -37,7 +37,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/user")
+    @PostMapping("/users")
     public User setUser(@RequestBody User user) {
         if (userStorage.containsKey(user.getId())) {
             log.info("User with this id is already added. User was not be added.");

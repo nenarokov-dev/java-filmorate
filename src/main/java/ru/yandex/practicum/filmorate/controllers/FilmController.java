@@ -27,7 +27,7 @@ public class FilmController {
         return new ArrayList<>(filmStorage.values());
     }
 
-    @PutMapping("/film")
+    @PutMapping("/films")
     public Film putFilm(@RequestBody @Valid Film film) {
         if (!filmStorage.containsKey(film.getId())) {
             log.info("This id is not available for PUT-method. Film with id " + film.getId() + " was not be replaced.");
@@ -39,7 +39,7 @@ public class FilmController {
         }
     }
 
-    @PostMapping("/film")
+    @PostMapping("/films")
     public Film setFilm(@RequestBody @Valid Film film) {
         if (filmStorage.containsKey(film.getId())) {
             log.info("Film with this id is already added. Film was not be added.");
