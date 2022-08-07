@@ -14,7 +14,7 @@ public class User {
     @Email(message = "Введённое значение не является почтой")
     private String email;
     @NotBlank(message = "Логин не должен быть пустым")
-    @Pattern(regexp = "^[0-9a-zA-Zа-яА-Я]$",message = "Логин не должен содержать пробелов")
+    @Pattern(regexp = "^[\\da-zA-Zа-яА-Я\\D]$",message = "Логин не должен содержать пробелов")
     private String login;
     private String name;
     @Past(message = "День рождения пользователя не должен быть в будущем")
