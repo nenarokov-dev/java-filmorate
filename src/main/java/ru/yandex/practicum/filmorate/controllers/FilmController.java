@@ -41,11 +41,11 @@ public class FilmController {
                     out = "Description length cannot be more than 200 char.";
                     log.error(out);
                     throw new NotValidException(out);
-                } else if (film.getReleaseData() < -27032) {
+                } else if (film.getReleaseData() <= -27032) {
                     out = "Release date must be after 28.12.1895.(27032 days before Unix-epoch)";
                     log.error(out);
                     throw new NotValidException(out);
-                } else if (film.getDuration() < 0) {
+                } else if (film.getDuration() <= 0) {
                     out = "Film duration must be non-negative.";
                     log.error(out);
                     throw new NotValidException(out);

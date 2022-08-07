@@ -17,7 +17,7 @@ public class Film {
     private String description;
     @Min(value = -27032,message = "Дата релиза фильма не должна быть ранее 28 декабря 1895 года.")
     private Long releaseData;
-    @Min(value = 1)
+    @Min(value = 0)
     private Long duration;//сукунды
 
     public Film(String name,LocalDate localDate,String description,Duration duration) {
