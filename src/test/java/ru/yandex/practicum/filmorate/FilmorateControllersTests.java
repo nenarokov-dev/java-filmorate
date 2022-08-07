@@ -28,8 +28,8 @@ class FilmorateControllersTests {
                 "Фильм про коронование подводного из Пацанов", Duration.ofMinutes(133));
         aquaman.setId(1);
         fc.setFilm(aquaman);
-        //ArrayList<Film> films = gson.fromJson(fc.getAllFilms(),new TypeToken<ArrayList<Film>>(){}.getType());
-        assertEquals(fc.getAllFilms().get(0),aquaman);
+        ArrayList<Film> films = gson.fromJson(fc.getAllFilms(),new TypeToken<ArrayList<Film>>(){}.getType());
+        assertEquals(films.get(0),aquaman);
     }
 
     @Test
@@ -74,8 +74,8 @@ class FilmorateControllersTests {
                 "Фильм про коронование подводного из Пацанов", Duration.ofMinutes(133));
         aquaman2.setId(1);
         fc.putFilm(aquaman2);
-        //ArrayList<Film> films = gson.fromJson(fc.getAllFilms(),new TypeToken<ArrayList<Film>>(){}.getType());
-        assertEquals(fc.getAllFilms().get(0),aquaman2);
+        ArrayList<Film> films = gson.fromJson(fc.getAllFilms(),new TypeToken<ArrayList<Film>>(){}.getType());
+        assertEquals(films.get(0),aquaman2);
         //проверять валидность полей класса film нет смысла т.к. они были проверены в методе setFilmsTest().
     }
 
