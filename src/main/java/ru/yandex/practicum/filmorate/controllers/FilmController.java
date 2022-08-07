@@ -9,9 +9,7 @@ import ru.yandex.practicum.filmorate.exceptions.NotValidException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 @RestController
 @Slf4j
@@ -21,9 +19,9 @@ public class FilmController {
     private final Gson gson = gsonBuilder.create();
 
     @GetMapping("/films")
-    public List<Film> getAllFilms() {
+    public String getAllFilms() {
         log.info("GET enabled. List of films was successfully sent.");
-        return new ArrayList<>(filmStorage.values());
+        return gson.toJson(filmStorage.values());
     }
 
     @PutMapping("/film")
@@ -79,11 +77,11 @@ public class FilmController {
                     out = "Description length cannot be more than 200 char.";
                     log.error(out);
                     throw new NotValidException(out);
-                } else if (film.getReleaseData() < -27032) {
+                } else if (film.getReleaseData() <= -27032) {
                     out = "Release date must be after 28.12.1895.(27032 days before Unix-epoch)";
                     log.error(out);
                     throw new NotValidException(out);
-                } else if (film.getDuration() < 0) {
+                } else if (film.getDuration() <= 0) {
                     out = "Film duration must be non-negative.";
                     log.error(out);
                     throw new NotValidException(out);
