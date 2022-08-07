@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import ru.yandex.practicum.filmorate.annotations.IsContainsSpase;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Past;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.*;
 
 @Data
 public class User {
@@ -14,10 +12,10 @@ public class User {
     @Email(message = "Введённое значение не является почтой")
     private String email;
     @NotBlank(message = "Логин не должен быть пустым")
-    @Pattern(regexp = "^[\\da-zA-Zа-яА-Я\\D]$",message = "Логин не должен содержать пробелов")
+    @IsContainsSpase(message = "Логин не должен содержать пробелов")
     private String login;
     private String name;
-    @Past(message = "День рождения пользователя не должен быть в будущем")
+    @Max(value = 19211,message = "День рождения пользователя не должен быть в будущем")
     private Long birthday;
 
     public User(String email, String login, String name, Long birthday) {
@@ -34,17 +32,7 @@ public class User {
         this.birthday = birthday;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-        if (this.name.isBlank()) {
-            this.name = login;
-        }
+    public User() {
     }
 
-    public void setName(String name) {
-        this.name = name;
-        if (this.login.isBlank()) {
-            this.login = name;
-        }
-    }
 }

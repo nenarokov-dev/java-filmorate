@@ -1,23 +1,21 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Validated
 @RestController
 @Slf4j
 public class UserController {
     private final HashMap<Integer, User> userStorage = new HashMap<>();
-    GsonBuilder gsonBuilder = new GsonBuilder().serializeNulls().setPrettyPrinting();
-    Gson gson = gsonBuilder.create();
 
     @GetMapping("/users")
     public List<User> getAllUsers() {
@@ -26,7 +24,7 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public User putUser(@RequestBody User user) {
+    public User putUser(@RequestBody @Valid User user) {
         if (!userStorage.containsKey(user.getId())) {
             log.info("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
             return null;
@@ -38,7 +36,7 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public User setUser(@RequestBody User user) {
+    public User setUser(@RequestBody @Valid User user) {
         if (userStorage.containsKey(user.getId())) {
             log.info("User with this id is already added. User was not be added.");
             return null;

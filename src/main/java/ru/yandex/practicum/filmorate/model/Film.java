@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ public class Film {
     private String description;
     @Min(value = -27032,message = "Дата релиза фильма не должна быть ранее 28 декабря 1895 года.")
     private Long releaseData;
-    @Min(value = 1,message = "Длительность фильма должна быть положительной.")
+    @Positive(message = "Длительность фильма должна быть положительной.")
     private Long duration;//сукунды
 
     public Film(String name,LocalDate localDate,String description,Duration duration) {

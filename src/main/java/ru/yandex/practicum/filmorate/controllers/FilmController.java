@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +16,6 @@ import java.util.List;
 @Slf4j
 public class FilmController {
     private final HashMap<Integer, Film> filmStorage = new HashMap<>();
-    private final GsonBuilder gsonBuilder = new GsonBuilder().serializeNulls().setPrettyPrinting();
-    private final Gson gson = gsonBuilder.create();
-
     @GetMapping("/films")
     public List<Film> getAllFilms() {
         log.info("GET enabled. List of films was successfully sent.");
