@@ -9,7 +9,9 @@ import ru.yandex.practicum.filmorate.exceptions.NotValidException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -19,9 +21,9 @@ public class FilmController {
     private final Gson gson = gsonBuilder.create();
 
     @GetMapping("/films")
-    public String getAllFilms() {
+    public List<Film> getAllFilms() {
         log.info("GET enabled. List of films was successfully sent.");
-        return gson.toJson(filmStorage.values());
+        return new ArrayList<>(filmStorage.values());
     }
 
     @PutMapping("/film")
