@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.annotations.IsContainsSpase;
 import ru.yandex.practicum.filmorate.exceptions.NotValidMethodException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -25,9 +26,9 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public User putUser(@RequestBody @Valid User user) {
+    public User putUser(@Valid @RequestBody  User user) {
         if (!userStorage.containsKey(user.getId())) {
-            log.info("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
+            log.error("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
             throw new NotValidMethodException("User with id="+user.getId()+" not found");
         } else {
             log.info("Used POST-method. User with id " + user.getId() + " was added.");
@@ -39,7 +40,7 @@ public class UserController {
     @PostMapping("/users")
     public User setUser(@RequestBody @Valid User user) {
         if (userStorage.containsKey(user.getId())) {
-            log.info("User with this id is already added. User was not be added.");
+            log.error("User with this id is already added. User was not be added.");
             throw new NotValidMethodException("User with id="+user.getId()+" is already added.");
         } else {
             log.info("Used POST-method. User with id " + user.getId() + " was added.");

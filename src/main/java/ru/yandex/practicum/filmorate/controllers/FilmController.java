@@ -26,7 +26,7 @@ public class FilmController {
     @PutMapping("/films")
     public Film putFilm(@RequestBody @Valid Film film) {
         if (!filmStorage.containsKey(film.getId())) {
-            log.info("This id is not available for PUT-method. Film with id " + film.getId() + " was not be replaced.");
+            log.error("This id is not available for PUT-method. Film with id " + film.getId() + " was not be replaced.");
             throw new NotValidMethodException("Film with id="+film.getId()+" not found");
         } else {
             log.info("Used PUT-method. Film with id " + film.getId() + " was replaced.");
@@ -38,7 +38,7 @@ public class FilmController {
     @PostMapping("/films")
     public Film setFilm(@RequestBody @Valid Film film) {
         if (filmStorage.containsKey(film.getId())) {
-            log.info("Film with this id is already added. Film was not be added.");
+            log.error("Film with this id is already added. Film was not be added.");
             throw new NotValidMethodException("Film with id="+film.getId()+" is already created.");
         } else {
             log.info("Used POST-method. Film with id " + film.getId() + " was added.");
