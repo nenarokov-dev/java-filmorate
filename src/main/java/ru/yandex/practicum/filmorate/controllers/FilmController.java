@@ -17,6 +17,7 @@ import java.util.List;
 @Slf4j
 public class FilmController {
     private final HashMap<Integer, Film> filmStorage = new HashMap<>();
+    private Integer counter = 1;
     @GetMapping("/films")
     public List<Film> getAllFilms() {
         log.info("GET enabled. List of films was successfully sent.");
@@ -24,7 +25,7 @@ public class FilmController {
     }
 
     @PutMapping("/films")
-    public Film putFilm(@RequestBody @Valid Film film) {
+    public Film putFilm(@RequestBody @Valid Film film){
         if (!filmStorage.containsKey(film.getId())) {
             log.error("This id is not available for PUT-method. Film with id " + film.getId() + " was not be replaced.");
             throw new NotValidMethodException("Film with id="+film.getId()+" not found");
@@ -36,15 +37,27 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film setFilm(@RequestBody @Valid Film film) {
+    public Film setFilm(@RequestBody @Valid Film film){
         if (filmStorage.containsKey(film.getId())) {
             log.error("Film with this id is already added. Film was not be added.");
             throw new NotValidMethodException("Film with id="+film.getId()+" is already created.");
         } else {
+            System.out.println(film);
+            if (film.getId() == null){
+                film.setId(generateId());
+            } else {
+                if (film.getId()>counter){
+                    counter=film.getId();
+                }
+            }
             log.info("Used POST-method. Film with id " + film.getId() + " was added.");
             filmStorage.put(film.getId(), film);
             return film;
         }
+    }
+
+    private Integer generateId(){
+        return counter++;
     }
 
 }
