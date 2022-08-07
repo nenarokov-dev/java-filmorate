@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exceptions.NotValidMethodException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -27,7 +28,7 @@ public class UserController {
     public User putUser(@RequestBody @Valid User user) {
         if (!userStorage.containsKey(user.getId())) {
             log.info("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
-            return null;
+            throw new NotValidMethodException("User with id="+user.getId()+" not found");
         } else {
             log.info("Used POST-method. User with id " + user.getId() + " was added.");
             userStorage.put(user.getId(), user);
@@ -39,7 +40,7 @@ public class UserController {
     public User setUser(@RequestBody @Valid User user) {
         if (userStorage.containsKey(user.getId())) {
             log.info("User with this id is already added. User was not be added.");
-            return null;
+            throw new NotValidMethodException("User with id="+user.getId()+" is already added.");
         } else {
             log.info("Used POST-method. User with id " + user.getId() + " was added.");
             userStorage.put(user.getId(), user);

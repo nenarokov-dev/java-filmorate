@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exceptions.NotValidMethodException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
@@ -26,7 +27,7 @@ public class FilmController {
     public Film putFilm(@RequestBody @Valid Film film) {
         if (!filmStorage.containsKey(film.getId())) {
             log.info("This id is not available for PUT-method. Film with id " + film.getId() + " was not be replaced.");
-            return null;
+            throw new NotValidMethodException("Film with id="+film.getId()+" not found");
         } else {
             log.info("Used PUT-method. Film with id " + film.getId() + " was replaced.");
             filmStorage.put(film.getId(), film);
@@ -38,7 +39,7 @@ public class FilmController {
     public Film setFilm(@RequestBody @Valid Film film) {
         if (filmStorage.containsKey(film.getId())) {
             log.info("Film with this id is already added. Film was not be added.");
-            return null;
+            throw new NotValidMethodException("Film with id="+film.getId()+" is already created.");
         } else {
             log.info("Used POST-method. Film with id " + film.getId() + " was added.");
             filmStorage.put(film.getId(), film);
