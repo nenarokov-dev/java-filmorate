@@ -14,10 +14,11 @@ public class User {
     @NotBlank(message = "Логин не должен быть пустым")
     @IsContainsSpase(message = "Логин не должен содержать пробелов")
     private String login;
+    @NotNull
     private String name;
     @NotBlank(message = "Email не должен быть пустым")
-    @Email(message = "Введённое значение не является почтой")
+    @Email(message = "Введённая строка не обладает структурой email [***@**.**]")
     private String email;
-    @Past
+    @Past(message = "День рождения пользователя должен быть в прошлом.")
     private LocalDate birthday;
 }

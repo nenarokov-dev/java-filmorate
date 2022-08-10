@@ -5,7 +5,6 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.annotations.IsCorrectLocalData;
 
 import javax.validation.constraints.*;
-import java.time.Duration;
 import java.time.LocalDate;
 @Data
 @AllArgsConstructor
@@ -16,7 +15,7 @@ public class Film {
     private String name;
     @Size(max = 200,message = "Описание не должно превышать 200 символов.")
     private String description;
-    @IsCorrectLocalData(message = "Дата релиза не должна быть ранее 28 декабря 1895 года.")
+    @IsCorrectLocalData(date = "1895-12-28",message = "Дата релиза не должна быть ранее 28 декабря 1895 года.")
     private LocalDate releaseDate;
     @Positive(message = "Длительность фильма должна быть положительной.")
     private Long duration;

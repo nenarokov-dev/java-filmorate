@@ -2,16 +2,32 @@ package ru.yandex.practicum.filmorate.annotations;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import javax.validation.constraints.NotNull;
+import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class IsCorrectReleaseDate implements ConstraintValidator<IsCorrectLocalData, LocalDate> {
+    String checkDate;
 
     @Override
-    public boolean isValid(LocalDate value, ConstraintValidatorContext context) {
-        if (value != null) {
-            return value.isAfter(LocalDate.of(1895,12,28));
-        } else {
+    public void initialize(IsCorrectLocalData isCorrectLocalData) {
+        this.checkDate = isCorrectLocalData.date();
+    }
+
+    @Override
+    public boolean isValid(@NotNull LocalDate value, ConstraintValidatorContext context) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        if (value == null) {
             return false;
+        } else {
+            try {
+                LocalDate parseCheckDate = LocalDate.parse(checkDate,dtf);
+                return value.isAfter(parseCheckDate);
+            } catch (DateTimeException e) {
+                return false;
+            }
         }
 
     }
