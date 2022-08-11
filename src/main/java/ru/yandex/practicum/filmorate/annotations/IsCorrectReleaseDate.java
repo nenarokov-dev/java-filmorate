@@ -9,22 +9,24 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class IsCorrectReleaseDate implements ConstraintValidator<IsCorrectLocalData, LocalDate> {
-    String checkDate;
+    int year;
+    int day;
+    int month;
 
     @Override
     public void initialize(IsCorrectLocalData isCorrectLocalData) {
-        this.checkDate = isCorrectLocalData.date();
+        this.year = isCorrectLocalData.year();
+        this.day = isCorrectLocalData.day();
+        this.month = isCorrectLocalData.month();
     }
 
     @Override
     public boolean isValid(@NotNull LocalDate value, ConstraintValidatorContext context) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         if (value == null) {
             return false;
         } else {
             try {
-                LocalDate parseCheckDate = LocalDate.parse(checkDate,dtf);
-                return value.isAfter(parseCheckDate);
+                return value.isAfter(LocalDate.of(year, month, day));
             } catch (DateTimeException e) {
                 return false;
             }
