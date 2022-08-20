@@ -24,8 +24,8 @@ class UserControllerTests {
     @Test
     void getUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(inMemoryUserStorage);
-        UserController uc = new UserController(inMemoryUserStorage,userService);
+        UserService userService = new UserService();
+        UserController uc = new UserController(inMemoryUserStorage, userService);
         User user = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         uc.setUser(user);
@@ -35,9 +35,9 @@ class UserControllerTests {
     @Test
     void setUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(inMemoryUserStorage);
-        UserController uc = new UserController(inMemoryUserStorage,userService);
-        User notCorrectUser = new User(1, "JavaGod", "Hacker","java@yandex.ru",
+        UserService userService = new UserService();
+        UserController uc = new UserController(inMemoryUserStorage, userService);
+        User notCorrectUser = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         notCorrectUser.setLogin("");
         final ConstraintViolationException loginEmptyException = assertThrows(
@@ -69,22 +69,22 @@ class UserControllerTests {
         uc.setUser(notCorrectUser);
         final BeanAlreadyCreatedException exception = assertThrows(
                 BeanAlreadyCreatedException.class, () -> uc.setUser(notCorrectUser));
-        assertEquals("User with id="+notCorrectUser.getId()+" is already added.", exception.getMessage());
+        assertEquals("User with id=" + notCorrectUser.getId() + " is already added.", exception.getMessage());
     }
 
     @Test
     void putUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(inMemoryUserStorage);
-        UserController uc = new UserController(inMemoryUserStorage,userService);
-        User user = new User(1, "JavaGod", "Hacker","java@yandex.ru",
+        UserService userService = new UserService();
+        UserController uc = new UserController(inMemoryUserStorage, userService);
+        User user = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         final BeanNotFoundException exception = assertThrows(
                 BeanNotFoundException.class,
                 () -> uc.putUser(user));
-        assertEquals("User with id="+user.getId()+" not found", exception.getMessage());
+        assertEquals("User with id=" + user.getId() + " not found", exception.getMessage());
         uc.setUser(user);
-        User user2 = new User(1, "PythonGod", "Junior","python@yandex.ru",
+        User user2 = new User(1, "PythonGod", "Junior", "python@yandex.ru",
                 LocalDate.of(2000, 1, 1));
         uc.putUser(user2);
         assertEquals(uc.getAllUsers().get(0), user2);

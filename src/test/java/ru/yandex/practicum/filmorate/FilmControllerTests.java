@@ -7,7 +7,9 @@ import ru.yandex.practicum.filmorate.controllers.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.BeanAlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exceptions.BeanNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.servise.FilmService;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.*;
 import java.time.LocalDate;
@@ -23,7 +25,9 @@ class FilmControllerTests {
     @Test
     void getFilmsTest() {
         InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
-        FilmController fc = new FilmController(inMemoryFilmStorage);
+        FilmService filmService = new FilmService();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage, filmService, inMemoryUserStorage);
         Film aquaMan = new Film(1, "Аквамен", "Фильм про коронование подводного из Пацанов",
                 LocalDate.of(2018, 12, 13), 133L);
         fc.setFilm(aquaMan);
@@ -33,13 +37,15 @@ class FilmControllerTests {
     @Test
     void setFilmsTest() {
         InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
-        FilmController fc = new FilmController(inMemoryFilmStorage);
+        FilmService filmService = new FilmService();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage, filmService, inMemoryUserStorage);
         //check bad request
         Film notCorrectFilmAquaMan = new Film(1, "Аквамен",
                 "Фильм про коронование подводного из Пацанов",
-                LocalDate.of(2018, 12, 13),-133L);
+                LocalDate.of(2018, 12, 13), -133L);
         final ConstraintViolationException filmDurationException = assertThrows(
-                ConstraintViolationException.class, () ->validateInput(notCorrectFilmAquaMan));
+                ConstraintViolationException.class, () -> validateInput(notCorrectFilmAquaMan));
         assertEquals(filmDurationException.getMessage().substring(10),
                 "Длительность фильма должна быть положительной.");
         notCorrectFilmAquaMan.setDuration(133L);//возвращаем положительное значение длительности
@@ -64,25 +70,28 @@ class FilmControllerTests {
         final BeanAlreadyCreatedException methodException = assertThrows(
                 BeanAlreadyCreatedException.class, () -> fc.setFilm(notCorrectFilmAquaMan));
         assertEquals(methodException.getMessage(),
-                "Film with id="+notCorrectFilmAquaMan.getId()+" is already created.");
+                "Film with id=" + notCorrectFilmAquaMan.getId() + " is already created.");
     }
 
     @Test
     void putFilmsTest() {
         InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
-        FilmController fc = new FilmController(inMemoryFilmStorage);
+        FilmService filmService = new FilmService();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage, filmService, inMemoryUserStorage);
         Film aquaMan = new Film(1, "Аквамен", "Фильм про коронование подводного из Пацанов",
                 LocalDate.of(2018, 12, 13), 133L);
         final BeanNotFoundException exception = assertThrows(
                 BeanNotFoundException.class,
                 () -> fc.putFilm(aquaMan));
-        assertEquals(exception.getMessage(), "Film with id="+aquaMan.getId()+" not found");
+        assertEquals(exception.getMessage(), "Фильм с id=" + aquaMan.getId() + " не найден.");
         fc.setFilm(aquaMan);
         Film aquaMan2 = new Film(1, "Аквамен2", "Фильм про коронование подводного из Пацанов",
                 LocalDate.of(2018, 12, 13), 133L);
         fc.putFilm(aquaMan2);
         assertEquals(fc.getAllFilms().get(0), aquaMan2);
     }
+
     void validateInput(Film film) {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
