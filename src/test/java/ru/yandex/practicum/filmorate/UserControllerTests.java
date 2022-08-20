@@ -7,6 +7,8 @@ import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.exceptions.BeanAlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exceptions.BeanNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.servise.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.*;
 import java.time.LocalDate;
@@ -21,7 +23,9 @@ class UserControllerTests {
 
     @Test
     void getUsersTest() {
-        UserController uc = new UserController();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(inMemoryUserStorage,userService);
         User user = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         uc.setUser(user);
@@ -30,7 +34,9 @@ class UserControllerTests {
 
     @Test
     void setUsersTest() {
-        UserController uc = new UserController();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(inMemoryUserStorage,userService);
         User notCorrectUser = new User(1, "JavaGod", "Hacker","java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         notCorrectUser.setLogin("");
@@ -68,7 +74,9 @@ class UserControllerTests {
 
     @Test
     void putUsersTest() {
-        UserController uc = new UserController();
+        InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(inMemoryUserStorage,userService);
         User user = new User(1, "JavaGod", "Hacker","java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         final BeanNotFoundException exception = assertThrows(

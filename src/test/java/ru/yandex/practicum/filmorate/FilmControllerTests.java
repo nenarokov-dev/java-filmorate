@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.controllers.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.BeanAlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exceptions.BeanNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.*;
 import java.time.LocalDate;
@@ -21,7 +22,8 @@ class FilmControllerTests {
 
     @Test
     void getFilmsTest() {
-        FilmController fc = new FilmController();
+        InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage);
         Film aquaMan = new Film(1, "Аквамен", "Фильм про коронование подводного из Пацанов",
                 LocalDate.of(2018, 12, 13), 133L);
         fc.setFilm(aquaMan);
@@ -30,7 +32,8 @@ class FilmControllerTests {
 
     @Test
     void setFilmsTest() {
-        FilmController fc = new FilmController();
+        InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage);
         //check bad request
         Film notCorrectFilmAquaMan = new Film(1, "Аквамен",
                 "Фильм про коронование подводного из Пацанов",
@@ -66,7 +69,8 @@ class FilmControllerTests {
 
     @Test
     void putFilmsTest() {
-        FilmController fc = new FilmController();
+        InMemoryFilmStorage inMemoryFilmStorage = new InMemoryFilmStorage();
+        FilmController fc = new FilmController(inMemoryFilmStorage);
         Film aquaMan = new Film(1, "Аквамен", "Фильм про коронование подводного из Пацанов",
                 LocalDate.of(2018, 12, 13), 133L);
         final BeanNotFoundException exception = assertThrows(

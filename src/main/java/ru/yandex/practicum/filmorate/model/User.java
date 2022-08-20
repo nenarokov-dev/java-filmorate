@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class User {
+
     private Integer id;
     @NotBlank(message = "Логин не должен быть пустым")
     @IsContainsSpase(message = "Логин не должен содержать пробелов")
@@ -21,4 +22,5 @@ public class User {
     private String email;
     @Past(message = "День рождения пользователя должен быть в прошлом.")
     private LocalDate birthday;
+
 }
