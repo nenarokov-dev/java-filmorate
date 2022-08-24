@@ -1,13 +1,10 @@
-package ru.yandex.practicum.filmorate.annotations;
-
-import org.yaml.snakeyaml.scanner.Constant;
+package ru.yandex.practicum.filmorate.annotation;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.time.LocalDate;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;

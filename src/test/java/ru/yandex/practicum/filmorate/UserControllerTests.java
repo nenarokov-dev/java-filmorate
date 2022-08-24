@@ -3,12 +3,12 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.controllers.UserController;
-import ru.yandex.practicum.filmorate.exceptions.BeanAlreadyCreatedException;
-import ru.yandex.practicum.filmorate.exceptions.BeanNotFoundException;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exceptions.AlreadyCreatedException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.servise.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.*;
 import java.time.LocalDate;
@@ -24,8 +24,8 @@ class UserControllerTests {
     @Test
     void getUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService();
-        UserController uc = new UserController(inMemoryUserStorage, userService);
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(userService);
         User user = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         uc.setUser(user);
@@ -35,8 +35,8 @@ class UserControllerTests {
     @Test
     void setUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService();
-        UserController uc = new UserController(inMemoryUserStorage, userService);
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(userService);
         User notCorrectUser = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
         notCorrectUser.setLogin("");
@@ -67,20 +67,20 @@ class UserControllerTests {
                 "День рождения пользователя должен быть в прошлом.");
         notCorrectUser.setBirthday(LocalDate.of(1990, 12, 12));
         uc.setUser(notCorrectUser);
-        final BeanAlreadyCreatedException exception = assertThrows(
-                BeanAlreadyCreatedException.class, () -> uc.setUser(notCorrectUser));
+        final AlreadyCreatedException exception = assertThrows(
+                AlreadyCreatedException.class, () -> uc.setUser(notCorrectUser));
         assertEquals("User with id=" + notCorrectUser.getId() + " is already added.", exception.getMessage());
     }
 
     @Test
     void putUsersTest() {
         InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
-        UserService userService = new UserService();
-        UserController uc = new UserController(inMemoryUserStorage, userService);
+        UserService userService = new UserService(inMemoryUserStorage);
+        UserController uc = new UserController(userService);
         User user = new User(1, "JavaGod", "Hacker", "java@yandex.ru",
                 LocalDate.of(1990, 12, 12));
-        final BeanNotFoundException exception = assertThrows(
-                BeanNotFoundException.class,
+        final NotFoundException exception = assertThrows(
+                NotFoundException.class,
                 () -> uc.putUser(user));
         assertEquals("User with id=" + user.getId() + " not found", exception.getMessage());
         uc.setUser(user);

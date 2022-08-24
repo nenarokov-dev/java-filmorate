@@ -12,7 +12,7 @@ public class BeanErrorResponse {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handle(final BeanNotFoundException e) {
+    public ErrorResponse handle(final NotFoundException e) {
         return new ErrorResponse(
                 "Некорректный запрос", e.getMessage()
         );
@@ -20,7 +20,7 @@ public class BeanErrorResponse {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handle(final BeanAlreadyCreatedException e) {
+    public ErrorResponse handle(final AlreadyCreatedException e) {
         return new ErrorResponse(
                 "Некорректный запрос", e.getMessage()
         );

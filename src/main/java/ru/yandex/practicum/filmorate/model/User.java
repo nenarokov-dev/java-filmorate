@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.annotations.IsContainsSpase;
+import ru.yandex.practicum.filmorate.annotation.IsContainsSpase;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -22,5 +24,7 @@ public class User {
     private String email;
     @Past(message = "День рождения пользователя должен быть в прошлом.")
     private LocalDate birthday;
+
+    private final Set<Integer> friendsId = new HashSet<>();
 
 }
