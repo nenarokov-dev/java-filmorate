@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.AlreadyCreatedException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -18,8 +18,8 @@ public class FilmService {
 
     private Integer counter = 1;
 
-    InMemoryUserStorage inMemoryUserStorage;
-    InMemoryFilmStorage inMemoryFilmStorage;
+    private final InMemoryUserStorage inMemoryUserStorage;
+    private final InMemoryFilmStorage inMemoryFilmStorage;
     private Map<Integer, Long> prioritizedFilms = new HashMap<>();
 
     @Autowired//без этого конструктора при обращении к inMemoryFilmStorage получаю NullPointerException
