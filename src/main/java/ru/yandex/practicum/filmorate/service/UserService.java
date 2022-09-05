@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.FriendshipError;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
@@ -32,13 +33,54 @@ public class UserService {
                 throw new FriendshipError("Пользователи уже дружат!");
             }
         }
-        inMemoryUserStorage.getUsersById(userId).getFriendsId().add(friendId);
-        inMemoryUserStorage.getUsersById(friendId).getFriendsId().add(userId);
-        String message = "Пользователь " + inMemoryUserStorage.getUsersById(userId).getName() +
-                "(userId=" + userId + ") подружился(-лась) с пользователем " +
-                inMemoryUserStorage.getUsersById(friendId).getName() + "(userId=" + friendId + ").";
-        log.info(message);
+        if (!inMemoryUserStorage.getUsersById(friendId).getSubscribesId().isEmpty()) {
+            if (inMemoryUserStorage.getUsersById(friendId).getSubscribesId().contains(userId)) {
+                log.error("Заявка в друзья уже отправлена.");
+                throw new FriendshipError("Заявка в друзья уже отправлена.");
+            }
+        }
+        String message = "";
+        //если у пользователя в подписчиках есть тот с кем пользователь планирует дружить
+        if (inMemoryUserStorage.getUsersById(userId).getSubscribesId().contains(friendId)){
+            //удаляем подписчика friendId у пользователя userID и добавляем friendId в список друзей
+            inMemoryUserStorage.getUsersById(userId).getSubscribesId().remove(friendId);
+            inMemoryUserStorage.getUsersById(userId).getFriendsId().add(friendId);
+            //добавляем пользователю friendId друга userId
+            inMemoryUserStorage.getUsersById(friendId).getFriendsId().add(userId);
+            message = "Пользователь " + inMemoryUserStorage.getUsersById(userId).getName() +
+                    "(userId=" + userId + ") подтвердил(-а) заявку в друзья от пользователя " +
+                    inMemoryUserStorage.getUsersById(friendId).getName() + "(userId=" + friendId + ").";
+            log.info(message);
+        } else {
+            inMemoryUserStorage.getUsersById(friendId).getSubscribesId().add(userId);
+            message = "Пользователь " + inMemoryUserStorage.getUsersById(userId).getName() +
+                    "(userId=" + userId + ") отправил(-а) заявку в друзья пользователю " +
+                    inMemoryUserStorage.getUsersById(friendId).getName() + "(userId=" + friendId + ").";
+            log.info(message);
+        }
         return message;
+    }
+
+    public FriendshipStatus getFriendshipStatus(Integer userId, Integer friendId) {
+        exceptionChecker(userId,friendId);
+        //если они не дружат и нет запросов в друзья ни от кого из них
+        if (!inMemoryUserStorage.getUsersById(userId).getFriendsId().contains(friendId)) {
+            if (!inMemoryUserStorage.getUsersById(userId).getSubscribesId().contains(friendId)){
+                if (!inMemoryUserStorage.getUsersById(friendId).getSubscribesId().contains(userId)){
+                    log.error("Пользователи не дружат!");
+                    throw new FriendshipError("Пользователи не дружат!");
+                } else {
+                    log.info("Получен статус дружбы: "+FriendshipStatus.UNCONFIRMED);
+                    return FriendshipStatus.UNCONFIRMED;
+                }
+            } else {
+                log.info("Получен статус дружбы: "+FriendshipStatus.UNCONFIRMED);
+                return FriendshipStatus.UNCONFIRMED;
+            }
+        } else {
+            log.info("Получен статус дружбы: "+FriendshipStatus.CONFIRMED);
+            return FriendshipStatus.CONFIRMED;
+        }
     }
 
     public String removeFriend(Integer userId, Integer friendId) {
@@ -121,7 +163,7 @@ public class UserService {
                 counter = user.getId();
             }
         }
-        if (user.getName().equals("")) {
+        if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         if (!inMemoryUserStorage.isNotContains(user.getId())) {

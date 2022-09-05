@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import ru.yandex.practicum.filmorate.annotation.IsContainsSpase;
 
 import javax.validation.constraints.*;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 @Data
 @AllArgsConstructor
+@Getter
 public class User {
 
     private Integer id;
@@ -26,5 +28,7 @@ public class User {
     private LocalDate birthday;
 
     private final Set<Integer> friendsId = new HashSet<>();
+
+    private final Set<Integer> subscribesId = new HashSet<>();
 
 }

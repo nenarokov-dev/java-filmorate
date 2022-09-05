@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -35,6 +36,11 @@ public class UserController {
     @GetMapping("/{userId}/friends/common/{friendId}")
     public Set<User> getUsersCommonFriends(@PathVariable Integer userId, @PathVariable Integer friendId) {
         return userService.commonFriends(userId, friendId);
+    }
+
+    @GetMapping("/{userId}/friends/status/{friendId}")
+    public FriendshipStatus getFriendshipStatus(@PathVariable Integer userId, @PathVariable Integer friendId) {
+        return userService.getFriendshipStatus(userId, friendId);
     }
 
     @GetMapping("/{userId}/friends")
