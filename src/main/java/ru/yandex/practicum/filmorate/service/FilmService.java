@@ -2,138 +2,148 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.impl.FilmDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.GenreDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.UserDaoImpl;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.service.interfaces.FilmsContract;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.sql.SQLException;
+import java.util.List;
 
 @Service
 @Slf4j
-public class FilmService {
+public class FilmService implements FilmsContract {
 
-    private Integer counter = 1;
+    private Integer filmsCounter;
+    private final FilmDaoImpl filmDao;
+    private final GenreDaoImpl genreDao;
+    private final UserDaoImpl userDao;
 
-    private final InMemoryUserStorage inMemoryUserStorage;
-    private final InMemoryFilmStorage inMemoryFilmStorage;
-    private Map<Integer, Long> prioritizedFilms = new HashMap<>();
 
-    @Autowired//без этого конструктора при обращении к inMemoryFilmStorage получаю NullPointerException
-    public FilmService(InMemoryUserStorage inMemoryUserStorage, InMemoryFilmStorage inMemoryFilmStorage) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    @Autowired
+    public FilmService(FilmDaoImpl filmDao,
+                       GenreDaoImpl genreDao, UserDaoImpl userDao) {
+        this.filmDao = filmDao;
+        this.genreDao = genreDao;
+        this.userDao = userDao;
+        this.filmsCounter = filmDao.getMaxFilmId();
     }
 
-    public List<Film> getAllFilms() {
-        log.info("Used GET-method. List of films was successfully sent.");
-        return inMemoryFilmStorage.getAllFilms();
-    }
-
-    public Film getFilmById(Integer id) {
-        filmIdCheck(id);
-        log.info("Used GET-method. Film with id=" + id + " was successfully sent.");
-        return inMemoryFilmStorage.getFilmById(id);
+    public Film setFilm(Film film) throws SQLException {
+        try {
+            if ((film.getId() == null) || (film.getId() <= 0)) {
+                film.setId(generateId());
+            } else {
+                if (film.getId() > filmsCounter) {
+                    filmsCounter = film.getId();
+                }
+            }
+            filmDao.setFilm(film);
+            genreDao.setGenreByFilm(film);
+            log.info("Фильм film_id=" + film.getId() + " успешно добавлен.");
+            return getFilmById(film.getId());
+        } catch (SQLException e) {
+            String message = "Ошибка при добавлении фильма film_id=" + film.getId() + " в базу данных.";
+            log.error(message);
+            throw new SQLException(message);
+        } catch (NullPointerException e) {
+            String message = "Ошибка при добавлении фильма film_id=" + film.getId() + " в базу данных.";
+            log.error(message);
+            throw new NotFoundException(message);
+        }
     }
 
     public Film putFilm(Film film) {
-        filmIdCheck(film.getId());
-        log.info("Used PUT-method. Film with id " + film.getId() + " was replaced.");
-        return inMemoryFilmStorage.putFilm(film);
+        try {
+            filmDao.putFilm(film);
+            genreDao.updateGenresByFilm(film);
+            log.info("Фильм film_id=" + film.getId() + " успешно обновлён.");
+            return getFilmById(film.getId());
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при обновлении фильма film_id=" + film.getId() + ". Фильм не найден.";
+            log.error(message);
+            throw new NotFoundException(message);
+        }
     }
 
-    public Film setFilm(Film film) {
-        if (film.getId() == null) {
-            film.setId(generateId());
-        } else {
-            if (film.getId() > counter) {
-                counter = film.getId();
-            }
+    public List<Film> getAllFilms() {
+        try {
+            List<Film> list = filmDao.getAllFilms();
+            list.forEach(e -> e.getGenres().addAll(genreDao.getGenreByFilm(e.getId())));
+            log.info("Cписок фильмов успешно получен");
+            return list;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при получении списка всех фильмов из базы данных.";
+            log.error(message);
+            throw new NotFoundException(message);
         }
-        if (inMemoryFilmStorage.isThisFilmContained(film.getId())) {
-            log.error("Film with this id is already added. Film was not be added.");
-            throw new AlreadyCreatedException("Film with id=" + film.getId() + " is already created.");
+    }
+
+    public Film getFilmById(Integer id) {
+        try {
+            Film film = filmDao.getFilmById(id);
+            film.getGenres().addAll(genreDao.getGenreByFilm(film.getId()));
+            log.info("Фильм film_id=" + id + " успешно получен.");
+            return film;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при получении фильма film_id=" + id + ".Фильм не найден.";
+            log.error(message);
+            throw new NotFoundException(message);
         }
-        log.info("Used POST-method. Film with id " + film.getId() + " was added.");
-        Film createdFilm = inMemoryFilmStorage.setFilm(film);
-        prioritizedFilmsUpdater();
-        return createdFilm;
     }
 
     public Film addLike(Integer userId, Integer filmId) {
-        filmAndUserIdCheck(userId, filmId);
-        log.info("Used PUT-method.User with id=" + userId + " add like to film with id=" + filmId + ".");
-        inMemoryFilmStorage.getFilmById(filmId).getUsersIdWhoLikes().add(userId);
-        prioritizedFilmsUpdater();
-        return inMemoryFilmStorage.getFilmById(filmId);
+        try {
+            isUserWhoLikeExist(userId);//выкинет ошибку, если нет
+            getFilmById(filmId);//так же выкинет ошибку, если фильм отсутствует в бд
+            filmDao.addLike(userId, filmId);//выкинет SQLException если лайк уже есть
+            log.info("Пользователь user_id=" + userId + " поставил лайк фильму film_id=" + filmId + ".");
+            return getFilmById(filmId);
+        } catch (SQLException e) {
+            String message = "Пользователю user_id=" + userId + " не удалось поставить лайк фильму film_id=" + filmId +
+                    ". Лайк фильму уже был поставлен.";
+            log.error(message);
+            throw new AlreadyCreatedException(message);
+        }
     }
 
     public Film removeLike(Integer userId, Integer filmId) {
-        filmAndUserIdCheck(userId, filmId);
-        log.info("Used DELETE-method.User with id=" + userId + " remove like from film with id=" + filmId + ".");
-        inMemoryFilmStorage.getFilmById(filmId).getUsersIdWhoLikes().add(userId);
-        prioritizedFilmsUpdater();
-        return inMemoryFilmStorage.getFilmById(filmId);
-    }
 
-    public List<Film> getPopularFilms(Integer counter) {
-        log.info("Used GET-method.List of prioritized films was successfully sent.");
-        if (!prioritizedFilms.keySet().isEmpty()) {
-            if (prioritizedFilms.size() < counter) {
-                return prioritizedFilms.keySet().stream().map(e -> inMemoryFilmStorage.getFilmById(e)).
-                        collect(Collectors.toList());
-            } else {
-                return prioritizedFilms.keySet().stream().map(e -> inMemoryFilmStorage.getFilmById(e)).
-                        limit(counter).collect(Collectors.toList());
-            }
-        } else return Collections.emptyList();
-    }
+        isUserWhoLikeExist(userId);
+        getFilmById(filmId);
+        filmDao.removeLike(userId, filmId);
+        log.info("Пользователь user_id=" + userId + " убрал лайк с фильма film_id=" + filmId + ".");
+        return getFilmById(filmId);
+    }//SQLException тут не будет, т.к. при удалении несуществующего лайка запрос успешно выполнится.
 
-    /* Думаю вскоре этот метод пригодится, а пока пусть побудет в сером цвете)
-    public Long getLikesCounter(Integer id) {
-        return prioritizedFilms.get(id);
-    }*/
-
-    private void prioritizedFilmsUpdater() {
-        if (!prioritizedFilms.isEmpty()) {
-            prioritizedFilms.clear();
-        }
-        for (Film film : inMemoryFilmStorage.getAllFilms()) {
-            long numOfLikes = film.getUsersIdWhoLikes().size();
-            prioritizedFilms.put(film.getId(), numOfLikes);
-        }
-        prioritizedFilms = sorter(prioritizedFilms);
-    }
-
-    private Map<Integer, Long> sorter(Map<Integer, Long> unsortedMap) {
-        return unsortedMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (a, b) -> {
-                            throw new AssertionError();
-                        }, LinkedHashMap::new
-                ));
-    }
-
-    private void filmAndUserIdCheck(Integer userId, Integer filmId) {
-        filmIdCheck(filmId);
-        if (inMemoryUserStorage.isNotContains(userId)) {
-            log.error("Пользователь с id=" + userId + " не найден.");
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
+    public List<Film> getPopularFilms(Integer limit) {
+        try {
+            List<Film> popularFilms = filmDao.getPopularFilms(limit);
+            log.info("Список приоритетных фильмов успешно получен");
+            return popularFilms;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при получении списка всех фильмов из базы данных.";
+            log.error(message);
+            throw new NotFoundException(message);
         }
     }
 
-    private void filmIdCheck(Integer filmId) {
-        if (!inMemoryFilmStorage.isThisFilmContained(filmId)) {
-            log.error("Фильм с id=" + filmId + " не найден.");
-            throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+    private void isUserWhoLikeExist(Integer userId) {
+        try {
+            userDao.getUsersById(userId);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Пользователь user_id=" + userId + " отсутствует в базе данных.";
+            log.error(message);
+            throw new NotFoundException(message);
         }
     }
 
     private Integer generateId() {
-        return counter++;
+        return ++filmsCounter;
     }
 }

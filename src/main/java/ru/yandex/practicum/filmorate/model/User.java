@@ -29,6 +29,4 @@ public class User {
 
     private final Set<Integer> friendsId = new HashSet<>();
 
-    private final Set<Integer> subscribesId = new HashSet<>();
-
 }

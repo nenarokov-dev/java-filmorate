@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.List;
 
 @Validated
@@ -52,7 +53,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film setFilm(@RequestBody @Valid Film film) {
+    public Film setFilm(@RequestBody @Valid Film film) throws SQLException {
         return filmService.setFilm(film);
     }
 

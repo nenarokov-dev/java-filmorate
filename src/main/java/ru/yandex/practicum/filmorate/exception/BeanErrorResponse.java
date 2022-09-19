@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
+
 @RestControllerAdvice
 public class BeanErrorResponse {
 
@@ -14,7 +16,7 @@ public class BeanErrorResponse {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handle(final NotFoundException e) {
         return new ErrorResponse(
-                "Некорректный запрос", e.getMessage()
+                "Некорректный запрос:", e.getMessage()
         );
     }
 
@@ -22,7 +24,7 @@ public class BeanErrorResponse {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handle(final AlreadyCreatedException e) {
         return new ErrorResponse(
-                "Некорректный запрос", e.getMessage()
+                "Некорректный запрос:", e.getMessage()
         );
     }
 
@@ -30,7 +32,15 @@ public class BeanErrorResponse {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handle(final FriendshipError e) {
         return new ErrorResponse(
-                "Некорректный запрос", e.getMessage()
+                "Некорректный запрос:", e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(final SQLException e) {
+        return new ErrorResponse(
+                "Ошибка запроса к базе данных:", e.getMessage()
         );
     }
 

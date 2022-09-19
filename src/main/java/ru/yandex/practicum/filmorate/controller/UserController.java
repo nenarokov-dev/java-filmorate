@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
@@ -49,17 +50,17 @@ public class UserController {
     }
 
     @PutMapping
-    public User putUser(@Valid @RequestBody User user) {
+    public User putUser(@Valid @RequestBody User user) throws SQLException {
         return userService.putUser(user);
     }
 
     @PostMapping
-    public User setUser(@RequestBody @Valid User user) {
+    public User setUser(@RequestBody @Valid User user) throws SQLException {
         return userService.setUser(user);
     }
 
     @PutMapping("/{userId}/friends/{friendId}")
-    public String addFriend(@PathVariable Integer userId, @PathVariable Integer friendId) {
+    public String addFriend(@PathVariable Integer userId, @PathVariable Integer friendId) throws SQLException {
         return userService.addFriend(userId, friendId);
     }
 
@@ -67,6 +68,5 @@ public class UserController {
     public String deleteFriend(@PathVariable Integer userId, @PathVariable Integer friendId) {
         return userService.removeFriend(userId, friendId);
     }
-
 
 }
