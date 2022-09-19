@@ -28,6 +28,7 @@ public class UserService implements UsersContract {
         this.maxUserId = userDao.getMaxUserId();
     }
 
+    @Override
     public User setUser(User user) throws SQLException {
         if ((user.getId() == null) || (user.getId() <= 0)) {
             user.setId(generateId());
@@ -50,6 +51,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public User putUser(User user) throws SQLException {
         try {
             userDao.putUser(user);
@@ -66,6 +68,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public User getUsersById(Integer id) {
         try {
             User user = userDao.getUsersById(id);
@@ -78,6 +81,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public List<User> getAllUsers() {
         try {
             List<User> users = userDao.getAllUsers();
@@ -90,6 +94,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public String addFriend(Integer userId, Integer friendId) throws SQLException {
         exceptionChecker(userId, friendId);
         try {
@@ -104,6 +109,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public String removeFriend(Integer userId, Integer friendId) {
         exceptionChecker(userId, friendId);
         String message = userDao.removeFriend(userId, friendId);
@@ -111,6 +117,7 @@ public class UserService implements UsersContract {
         return message;
     }
 
+    @Override
     public Set<User> listOfFriends(Integer userId) {
         try {
             Set<User> listOfFriends = userDao.listOfFriends(userId);
@@ -121,6 +128,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public Set<User> commonFriends(Integer userId, Integer otherUserId) {
         exceptionChecker(userId, otherUserId);
         try {
@@ -134,6 +142,7 @@ public class UserService implements UsersContract {
         }
     }
 
+    @Override
     public FriendshipStatus getFriendshipStatus(Integer userId, Integer friendId) {
         exceptionChecker(userId, friendId);
         try {

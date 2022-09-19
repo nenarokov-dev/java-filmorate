@@ -86,14 +86,15 @@ public class FilmDaoImpl implements FilmDao {
         return filmsWithLikes;
     }
 
-    private Set<Integer> getUserWhoLikesFilm(Integer filmId) {
-        return new HashSet<>(jdbcTemplate.query("SELECT user_id FROM likes WHERE film_id=" + filmId,
-                new IntegerMapper("user_id")));
-    }
-
+    @Override
     public Integer getMaxFilmId() {
         return jdbcTemplate.query("SELECT max(film_id) AS max FROM films",
                 new IntegerMapper("max")).stream().findAny().orElse(1);
+    }
+
+    private Set<Integer> getUserWhoLikesFilm(Integer filmId) {
+        return new HashSet<>(jdbcTemplate.query("SELECT user_id FROM likes WHERE film_id=" + filmId,
+                new IntegerMapper("user_id")));
     }
 
     private void setUsersWhoLikes(Film film) {

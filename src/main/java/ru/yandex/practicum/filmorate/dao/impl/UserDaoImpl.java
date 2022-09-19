@@ -25,13 +25,14 @@ public class UserDaoImpl implements UserDao {
     public UserDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
+    @Override
     public User setUser(User user) {
         jdbcTemplate.update("INSERT INTO users VALUES (?,?,?,?,?)",
                 user.getId(), user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         return user;
     }
 
+    @Override
     public User putUser(User user) throws SQLException {
         getUsersById(user.getId());
         jdbcTemplate.update("UPDATE users SET login=?,name=?,email=?,birthday=? WHERE user_id=?",
@@ -39,6 +40,7 @@ public class UserDaoImpl implements UserDao {
         return user;
     }
 
+    @Override
     public User getUsersById(Integer userId) {
         User user = jdbcTemplate.queryForObject("SELECT * FROM users WHERE user_id=" + userId, new UserMapper());
         if (user != null) {//идея просит заненуллить юзера, но по идее юзер никогда не null, т.к. в случае возврата
@@ -47,29 +49,34 @@ public class UserDaoImpl implements UserDao {
         return user;
     }
 
+    @Override
     public List<User> getAllUsers() {
         List<User> users = jdbcTemplate.query("SELECT * FROM users", new UserMapper());
         users.forEach(this::setFriends);
         return users;
     }
 
+    @Override
     public String addFriend(Integer userId, Integer friendId) throws SQLException {
         jdbcTemplate.update("INSERT INTO friendship VALUES (?,?)", userId, friendId);
         return String.format("Пользователь user_id=%d добавился в друзья к пользователю user_id=%d",
                 userId, friendId);
     }
 
+    @Override
     public String removeFriend(Integer userId, Integer friendId) {
         jdbcTemplate.update("DELETE FROM friendship WHERE user_id=? AND friend_or_follower_id=?", userId, friendId);
         return String.format("Пользователь user_id=%d успешно удалил из друзей пользователя user_id=%d",
                 userId, friendId);
     }
 
+    @Override
     public Set<User> listOfFriends(Integer userId) {
         getUsersById(userId);//в случае если юзера нет вылетит IncorrectResultSizeDataAccessException
         return getAllFriendsByUser(userId).stream().map(this::getUsersById).collect(Collectors.toSet());
     }//сделал бы тут и далее через стрим, но стрим не дружит с обработкой исключений, внешне получится то же самое.
 
+    @Override
     public Set<User> commonFriends(Integer userId, Integer otherUserId) {
         try {
             getUsersById(userId);
@@ -87,6 +94,7 @@ public class UserDaoImpl implements UserDao {
                 stream().map(this::getUsersById).collect(Collectors.toSet());
     }
 
+    @Override
     public FriendshipStatus getFriendshipStatus(Integer userId, Integer friendId) {
 
         Set<Integer> UsersListOfFriends = getAllFriendsByUser(userId);
@@ -103,6 +111,12 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public Integer getMaxUserId() {
+        return jdbcTemplate.query("SELECT max(user_id) AS max FROM users",
+                new IntegerMapper("max")).stream().findAny().orElse(1);
+    }
+
     private Set<Integer> getAllFriendsByUser(Integer userId) {
         return new HashSet<>(jdbcTemplate.query(
                 String.format("SELECT friend_or_follower_id FROM friendship WHERE user_id=%d", userId),
@@ -114,11 +128,6 @@ public class UserDaoImpl implements UserDao {
                         userId + " AND friend_or_follower_id IN " + "(SELECT  friend_or_follower_id FROM friendship " +
                         "WHERE USER_ID=" + otherUserId + ")",
                 new IntegerMapper("friend_or_follower_id")));
-    }
-
-    public Integer getMaxUserId() {
-        return jdbcTemplate.query("SELECT max(user_id) AS max FROM users",
-                new IntegerMapper("max")).stream().findAny().orElse(1);
     }
 
     private void setFriends(User user) {

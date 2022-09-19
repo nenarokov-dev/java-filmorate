@@ -34,6 +34,7 @@ public class FilmService implements FilmsContract {
         this.filmsCounter = filmDao.getMaxFilmId();
     }
 
+    @Override
     public Film setFilm(Film film) throws SQLException {
         try {
             if ((film.getId() == null) || (film.getId() <= 0)) {
@@ -58,6 +59,7 @@ public class FilmService implements FilmsContract {
         }
     }
 
+    @Override
     public Film putFilm(Film film) {
         try {
             filmDao.putFilm(film);
@@ -71,6 +73,7 @@ public class FilmService implements FilmsContract {
         }
     }
 
+    @Override
     public List<Film> getAllFilms() {
         try {
             List<Film> list = filmDao.getAllFilms();
@@ -84,6 +87,7 @@ public class FilmService implements FilmsContract {
         }
     }
 
+    @Override
     public Film getFilmById(Integer id) {
         try {
             Film film = filmDao.getFilmById(id);
@@ -97,6 +101,7 @@ public class FilmService implements FilmsContract {
         }
     }
 
+    @Override
     public Film addLike(Integer userId, Integer filmId) {
         try {
             isUserWhoLikeExist(userId);//выкинет ошибку, если нет
@@ -112,6 +117,7 @@ public class FilmService implements FilmsContract {
         }
     }
 
+    @Override
     public Film removeLike(Integer userId, Integer filmId) {
 
         isUserWhoLikeExist(userId);
@@ -121,6 +127,7 @@ public class FilmService implements FilmsContract {
         return getFilmById(filmId);
     }//SQLException тут не будет, т.к. при удалении несуществующего лайка запрос успешно выполнится.
 
+    @Override
     public List<Film> getPopularFilms(Integer limit) {
         try {
             List<Film> popularFilms = filmDao.getPopularFilms(limit);
