@@ -2,23 +2,22 @@ package ru.yandex.practicum.filmorate.service.interfaces;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface FilmsContract {
 
-    Film setFilm(Film film) throws SQLException;
+    Film save(Film film);
 
-    Film putFilm(Film film) throws SQLException;
+    Film update(Film film);
 
-    Film getFilmById(Integer id) throws SQLException;
+    Film getFilmById(Integer id);
 
-    List<Film> getAllFilms() throws SQLException;
+    List<Film> getAllFilms();
 
-    Film addLike(Integer userId, Integer filmId) throws SQLException;
+    Film addLike(Integer userId, Integer filmId);
 
-    Film removeLike(Integer userId, Integer filmId) throws SQLException;
+    Film removeLike(Integer userId, Integer filmId);
 
-    List<Film> getPopularFilms(Integer counter) throws SQLException;
+    List<Film> getPopularFilms(Integer counter);
 
 }

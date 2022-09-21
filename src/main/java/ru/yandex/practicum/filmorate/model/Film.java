@@ -35,4 +35,3 @@ public class Film {
     private final Set<Integer> usersIdWhoLikes = new HashSet<>();
 
 }
-

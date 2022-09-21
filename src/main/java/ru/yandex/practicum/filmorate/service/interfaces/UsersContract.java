@@ -10,9 +10,9 @@ import java.util.Set;
 
 public interface UsersContract {
 
-    User setUser(User user) throws SQLException;
+    User save(User user) throws SQLException;
 
-    User putUser(User user) throws SQLException;
+    User update(User user) throws SQLException;
 
     User getUsersById(Integer id) throws SQLException;
 

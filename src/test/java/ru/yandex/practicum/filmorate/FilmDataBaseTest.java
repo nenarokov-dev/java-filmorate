@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.dao.impl.FilmDaoImpl;
-import ru.yandex.practicum.filmorate.dao.impl.UserDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dao.impl.LikesDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmRating;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,8 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class FilmDataBaseTest {
 
-    private final FilmDaoImpl filmDao;
-    private final UserDaoImpl userDao;
+    private final FilmDbStorage filmDao;
+    private final UserDbStorage userDao;
+
+    private final LikesDaoImpl likesDao;
 
     Film film = new Film(1, "sfsd", "sdfsdf", LocalDate.of(2000, 1, 1),
             120, new FilmRating(1, null));
@@ -37,23 +39,23 @@ public class FilmDataBaseTest {
             LocalDate.of(2000, 1, 1));
 
     @Test
-    void setFilm() throws SQLException {
-        filmDao.setFilm(film);
+    void setFilm(){
+        filmDao.save(film);
         Film film1 = filmDao.getFilmById(1);
         assertEquals(film1.getId(), 1);
     }
 
     @Test
-    void putFilm() throws SQLException {
-        filmDao.setFilm(film);
-        filmDao.putFilm(filmUpdate);
+    void putFilm(){
+        filmDao.save(film);
+        filmDao.update(filmUpdate);
         Film film1 = filmDao.getFilmById(1);
         assertEquals(film1.getName(), filmUpdate.getName());
     }
 
     @Test
-    void getFilmById() throws SQLException {
-        filmDao.setFilm(film);
+    void getFilmById() {
+        filmDao.save(film);
         Film film1 = filmDao.getFilmById(film.getId());
         assertEquals(film1.getName(), film.getName());
         assertEquals(film1.getDescription(), film.getDescription());
@@ -63,45 +65,44 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void getAllFilms() throws SQLException {
-        filmDao.setFilm(film);
+    void getAllFilms() {
+        filmDao.save(film);
         Film film1 = new Film(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa());
         film1.setId(2);
-        filmDao.setFilm(film1);
+        filmDao.save(film1);
         List<Film> films = filmDao.getAllFilms();
         assertEquals(films.get(0).getId(), film.getId());
         assertEquals(films.get(1).getId(), film1.getId());
     }
 
     @Test
-    void addLike() throws SQLException {
-        userDao.setUser(user);
-        filmDao.setFilm(film);
-        filmDao.addLike(user.getId(), film.getId());
-        Film film1 = filmDao.getFilmById(film.getId());
-        assertTrue(film1.getUsersIdWhoLikes().contains(user.getId()));
+    void addLike() {
+        userDao.save(user);
+        filmDao.save(film);
+        likesDao.addLike(user.getId(), film.getId());
+        assertTrue(likesDao.getUserWhoLikesFilm(film.getId()).contains(user.getId()));
     }
 
     @Test
-    void removeLike() throws SQLException {
-        userDao.setUser(user);
-        filmDao.setFilm(film);
-        filmDao.addLike(user.getId(), film.getId());
-        filmDao.removeLike(user.getId(), film.getId());
+    void removeLike() {
+        userDao.save(user);
+        filmDao.save(film);
+        likesDao.addLike(user.getId(), film.getId());
+        likesDao.removeLike(user.getId(), film.getId());
         Film film1 = filmDao.getFilmById(film.getId());
         assertFalse(film1.getUsersIdWhoLikes().contains(user.getId()));
     }
 
     @Test
-    void getPopularFilms() throws SQLException {
-        filmDao.setFilm(film);
+    void getPopularFilms() {
+        filmDao.save(film);
         Film film1 = new Film(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa());
         film1.setId(2);
-        filmDao.setFilm(film1);
-        userDao.setUser(user);
-        filmDao.addLike(user.getId(), 2);
+        filmDao.save(film1);
+        userDao.save(user);
+        likesDao.addLike(user.getId(), 2);
         List<Film> prioritizedFilms = filmDao.getPopularFilms(1);
         assertEquals(prioritizedFilms.get(0).getId(), 2);
     }

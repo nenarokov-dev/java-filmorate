@@ -3,18 +3,17 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.sql.SQLException;
 import java.util.List;
 
 @Validated
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    @Autowired
     private final FilmService filmService;
 
     @Autowired
@@ -39,7 +38,7 @@ public class FilmController {
 
     @PutMapping
     public Film putFilm(@RequestBody @Valid Film film) {
-        return filmService.putFilm(film);
+        return filmService.update(film);
     }
 
     @PutMapping("/{filmId}/like/{userId}")
@@ -53,8 +52,8 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film setFilm(@RequestBody @Valid Film film) throws SQLException {
-        return filmService.setFilm(film);
+    public Film setFilm(@RequestBody @Valid Film film) {
+        return filmService.save(film);
     }
 
 }

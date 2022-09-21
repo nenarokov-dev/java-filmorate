@@ -4,54 +4,44 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.impl.FilmDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dao.impl.GenreDaoImpl;
-import ru.yandex.practicum.filmorate.dao.impl.UserDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.LikesDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.interfaces.FilmsContract;
 
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
 @Slf4j
 public class FilmService implements FilmsContract {
 
-    private Integer filmsCounter;
-    private final FilmDaoImpl filmDao;
+    private final FilmDbStorage filmDao;
     private final GenreDaoImpl genreDao;
-    private final UserDaoImpl userDao;
+    private final UserDbStorage userDao;
+
+    private final LikesDaoImpl likesDao;
 
 
     @Autowired
-    public FilmService(FilmDaoImpl filmDao,
-                       GenreDaoImpl genreDao, UserDaoImpl userDao) {
+    public FilmService(FilmDbStorage filmDao, GenreDaoImpl genreDao,
+                       UserDbStorage userDao, LikesDaoImpl likesDao) {
         this.filmDao = filmDao;
         this.genreDao = genreDao;
         this.userDao = userDao;
-        this.filmsCounter = filmDao.getMaxFilmId();
+        this.likesDao = likesDao;
     }
 
     @Override
-    public Film setFilm(Film film) throws SQLException {
+    public Film save(Film film) {
         try {
-            if ((film.getId() == null) || (film.getId() <= 0)) {
-                film.setId(generateId());
-            } else {
-                if (film.getId() > filmsCounter) {
-                    filmsCounter = film.getId();
-                }
-            }
-            filmDao.setFilm(film);
-            genreDao.setGenreByFilm(film);
+            filmDao.save(film);
+            genreDao.setGenresToFilm(film);
             log.info("Фильм film_id=" + film.getId() + " успешно добавлен.");
             return getFilmById(film.getId());
-        } catch (SQLException e) {
-            String message = "Ошибка при добавлении фильма film_id=" + film.getId() + " в базу данных.";
-            log.error(message);
-            throw new SQLException(message);
         } catch (NullPointerException e) {
             String message = "Ошибка при добавлении фильма film_id=" + film.getId() + " в базу данных.";
             log.error(message);
@@ -60,9 +50,9 @@ public class FilmService implements FilmsContract {
     }
 
     @Override
-    public Film putFilm(Film film) {
+    public Film update(Film film) {
         try {
-            filmDao.putFilm(film);
+            filmDao.update(film);
             genreDao.updateGenresByFilm(film);
             log.info("Фильм film_id=" + film.getId() + " успешно обновлён.");
             return getFilmById(film.getId());
@@ -77,7 +67,8 @@ public class FilmService implements FilmsContract {
     public List<Film> getAllFilms() {
         try {
             List<Film> list = filmDao.getAllFilms();
-            list.forEach(e -> e.getGenres().addAll(genreDao.getGenreByFilm(e.getId())));
+            list.forEach(e -> e.getGenres().addAll(genreDao.getGenresByFilm(e.getId())));
+            list.forEach(e -> e.getUsersIdWhoLikes().addAll(likesDao.getUserWhoLikesFilm(e.getId())));
             log.info("Cписок фильмов успешно получен");
             return list;
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -91,7 +82,8 @@ public class FilmService implements FilmsContract {
     public Film getFilmById(Integer id) {
         try {
             Film film = filmDao.getFilmById(id);
-            film.getGenres().addAll(genreDao.getGenreByFilm(film.getId()));
+            film.getGenres().addAll(genreDao.getGenresByFilm(film.getId()));
+            film.getUsersIdWhoLikes().addAll(likesDao.getUserWhoLikesFilm(film.getId()));
             log.info("Фильм film_id=" + id + " успешно получен.");
             return film;
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -106,10 +98,10 @@ public class FilmService implements FilmsContract {
         try {
             isUserWhoLikeExist(userId);//выкинет ошибку, если нет
             getFilmById(filmId);//так же выкинет ошибку, если фильм отсутствует в бд
-            filmDao.addLike(userId, filmId);//выкинет SQLException если лайк уже есть
+            likesDao.addLike(userId, filmId);//выкинет ошибку если лайк уже есть
             log.info("Пользователь user_id=" + userId + " поставил лайк фильму film_id=" + filmId + ".");
             return getFilmById(filmId);
-        } catch (SQLException e) {
+        } catch (IncorrectResultSizeDataAccessException e) {
             String message = "Пользователю user_id=" + userId + " не удалось поставить лайк фильму film_id=" + filmId +
                     ". Лайк фильму уже был поставлен.";
             log.error(message);
@@ -119,18 +111,18 @@ public class FilmService implements FilmsContract {
 
     @Override
     public Film removeLike(Integer userId, Integer filmId) {
-
         isUserWhoLikeExist(userId);
         getFilmById(filmId);
-        filmDao.removeLike(userId, filmId);
+        likesDao.removeLike(userId, filmId);
         log.info("Пользователь user_id=" + userId + " убрал лайк с фильма film_id=" + filmId + ".");
         return getFilmById(filmId);
-    }//SQLException тут не будет, т.к. при удалении несуществующего лайка запрос успешно выполнится.
+    }
 
     @Override
     public List<Film> getPopularFilms(Integer limit) {
         try {
             List<Film> popularFilms = filmDao.getPopularFilms(limit);
+            popularFilms.forEach(e -> e.getUsersIdWhoLikes().addAll(likesDao.getUserWhoLikesFilm(e.getId())));
             log.info("Список приоритетных фильмов успешно получен");
             return popularFilms;
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -150,7 +142,4 @@ public class FilmService implements FilmsContract {
         }
     }
 
-    private Integer generateId() {
-        return ++filmsCounter;
-    }
 }

@@ -50,13 +50,13 @@ public class UserController {
     }
 
     @PutMapping
-    public User putUser(@Valid @RequestBody User user) throws SQLException {
-        return userService.putUser(user);
+    public User update(@Valid @RequestBody User user) {
+        return userService.update(user);
     }
 
     @PostMapping
-    public User setUser(@RequestBody @Valid User user) throws SQLException {
-        return userService.setUser(user);
+    public User save(@RequestBody @Valid User user) throws SQLException {
+        return userService.save(user);
     }
 
     @PutMapping("/{userId}/friends/{friendId}")
