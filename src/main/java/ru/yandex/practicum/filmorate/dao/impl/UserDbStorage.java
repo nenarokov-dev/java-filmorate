@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,14 +17,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-
 @Component
+@AllArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public User save(User user) {

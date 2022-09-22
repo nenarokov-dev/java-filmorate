@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FriendshipDao;
+import ru.yandex.practicum.filmorate.dao.FriendshipStorage;
 import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exception.FriendshipError;
@@ -19,17 +19,12 @@ import java.util.Set;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class UserService implements UsersContract {
 
     private final UserDbStorage userDao;
 
-    private final FriendshipDao friendshipDao;
-
-    @Autowired
-    public UserService(UserDbStorage userDao, FriendshipDao friendshipDao) {
-        this.userDao = userDao;
-        this.friendshipDao = friendshipDao;
-    }
+    private final FriendshipStorage friendshipDao;
 
     @Override
     public User save(User user) throws SQLException {

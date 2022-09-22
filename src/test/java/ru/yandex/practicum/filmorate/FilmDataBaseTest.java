@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.dao.impl.FilmDbStorage;
-import ru.yandex.practicum.filmorate.dao.impl.LikesDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.LikesDbStorage;
 import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmRating;
@@ -26,8 +26,7 @@ public class FilmDataBaseTest {
 
     private final FilmDbStorage filmDao;
     private final UserDbStorage userDao;
-
-    private final LikesDaoImpl likesDao;
+    private final LikesDbStorage likesDao;
 
     Film film = new Film(1, "sfsd", "sdfsdf", LocalDate.of(2000, 1, 1),
             120, new FilmRating(1, null));
@@ -39,14 +38,14 @@ public class FilmDataBaseTest {
             LocalDate.of(2000, 1, 1));
 
     @Test
-    void setFilm(){
+    void saveFilmIntoDataBaseTest(){
         filmDao.save(film);
         Film film1 = filmDao.getFilmById(1);
         assertEquals(film1.getId(), 1);
     }
 
     @Test
-    void putFilm(){
+    void updateFilmInDataBaseTest(){
         filmDao.save(film);
         filmDao.update(filmUpdate);
         Film film1 = filmDao.getFilmById(1);
@@ -54,7 +53,7 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void getFilmById() {
+    void getFilmByIdFromDataBaseTest() {
         filmDao.save(film);
         Film film1 = filmDao.getFilmById(film.getId());
         assertEquals(film1.getName(), film.getName());
@@ -65,7 +64,7 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void getAllFilms() {
+    void getAllFilmsFromDataBaseTest() {
         filmDao.save(film);
         Film film1 = new Film(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa());
@@ -77,7 +76,7 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void addLike() {
+    void addLikeToFilmTest() {
         userDao.save(user);
         filmDao.save(film);
         likesDao.addLike(user.getId(), film.getId());
@@ -85,7 +84,7 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void removeLike() {
+    void removeLikeFromFilmTest() {
         userDao.save(user);
         filmDao.save(film);
         likesDao.addLike(user.getId(), film.getId());
@@ -95,7 +94,7 @@ public class FilmDataBaseTest {
     }
 
     @Test
-    void getPopularFilms() {
+    void getPopularFilmsFromDataBaseTest() {
         filmDao.save(film);
         Film film1 = new Film(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa());

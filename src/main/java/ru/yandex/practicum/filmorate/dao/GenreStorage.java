@@ -5,16 +5,16 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
 
-public interface GenreDao {
+public interface GenreStorage {
 
     List<Genre> getAll();
 
     Genre getById(Integer genreId);
 
-    List<Genre> getGenresByFilm(Integer filmId);
+    List<Genre> getByFilm(Integer filmId);
 
-    void setGenresToFilm(Film film);
+    void setToFilm(Film film);
 
-    void updateGenresByFilm(Film film);
+    void updateByFilm(Film film);
 
 }

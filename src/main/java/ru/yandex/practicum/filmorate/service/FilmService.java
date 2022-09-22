@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.impl.FilmDbStorage;
-import ru.yandex.practicum.filmorate.dao.impl.GenreDaoImpl;
-import ru.yandex.practicum.filmorate.dao.impl.LikesDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.GenreDbStorage;
+import ru.yandex.practicum.filmorate.dao.impl.LikesDbStorage;
 import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -17,29 +17,19 @@ import java.util.List;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class FilmService implements FilmsContract {
 
     private final FilmDbStorage filmDao;
-    private final GenreDaoImpl genreDao;
+    private final GenreDbStorage genreDao;
     private final UserDbStorage userDao;
-
-    private final LikesDaoImpl likesDao;
-
-
-    @Autowired
-    public FilmService(FilmDbStorage filmDao, GenreDaoImpl genreDao,
-                       UserDbStorage userDao, LikesDaoImpl likesDao) {
-        this.filmDao = filmDao;
-        this.genreDao = genreDao;
-        this.userDao = userDao;
-        this.likesDao = likesDao;
-    }
+    private final LikesDbStorage likesDao;
 
     @Override
     public Film save(Film film) {
         try {
             filmDao.save(film);
-            genreDao.setGenresToFilm(film);
+            genreDao.setToFilm(film);
             log.info("Фильм film_id=" + film.getId() + " успешно добавлен.");
             return getFilmById(film.getId());
         } catch (NullPointerException e) {
@@ -53,7 +43,7 @@ public class FilmService implements FilmsContract {
     public Film update(Film film) {
         try {
             filmDao.update(film);
-            genreDao.updateGenresByFilm(film);
+            genreDao.updateByFilm(film);
             log.info("Фильм film_id=" + film.getId() + " успешно обновлён.");
             return getFilmById(film.getId());
         } catch (IncorrectResultSizeDataAccessException e) {
@@ -67,7 +57,7 @@ public class FilmService implements FilmsContract {
     public List<Film> getAllFilms() {
         try {
             List<Film> list = filmDao.getAllFilms();
-            list.forEach(e -> e.getGenres().addAll(genreDao.getGenresByFilm(e.getId())));
+            list.forEach(e -> e.getGenres().addAll(genreDao.getByFilm(e.getId())));
             list.forEach(e -> e.getUsersIdWhoLikes().addAll(likesDao.getUserWhoLikesFilm(e.getId())));
             log.info("Cписок фильмов успешно получен");
             return list;
@@ -82,7 +72,7 @@ public class FilmService implements FilmsContract {
     public Film getFilmById(Integer id) {
         try {
             Film film = filmDao.getFilmById(id);
-            film.getGenres().addAll(genreDao.getGenresByFilm(film.getId()));
+            film.getGenres().addAll(genreDao.getByFilm(film.getId()));
             film.getUsersIdWhoLikes().addAll(likesDao.getUserWhoLikesFilm(film.getId()));
             log.info("Фильм film_id=" + id + " успешно получен.");
             return film;

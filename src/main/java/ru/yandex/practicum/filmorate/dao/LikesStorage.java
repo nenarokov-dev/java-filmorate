@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import ru.yandex.practicum.filmorate.model.Film;
-
 import java.util.Set;
 
-public interface LikesDao {
+public interface LikesStorage {
 
     void addLike(Integer userId, Integer filmId);
 

@@ -4,10 +4,10 @@ import ru.yandex.practicum.filmorate.model.FilmRating;
 
 import java.util.List;
 
-public interface RatingDao {
+public interface RatingStorage {
 
-    List<FilmRating> getAllRatings();
+    List<FilmRating> getAll();
 
-    FilmRating getRatingById(Integer ratingId);
+    FilmRating getById(Integer ratingId);
 
 }

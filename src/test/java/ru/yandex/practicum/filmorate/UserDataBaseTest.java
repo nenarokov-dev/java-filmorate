@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.dao.impl.FriendshipDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.FriendshipDbStorage;
 import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
@@ -26,7 +26,7 @@ public class UserDataBaseTest {
 
     private final UserDbStorage userDao;
 
-    private final FriendshipDaoImpl friendshipDao;
+    private final FriendshipDbStorage friendshipDao;
 
     User user = new User(1, "sdfsd", "fghdgfh", "sdfdf@yandex.ru",
             LocalDate.of(2000, 1, 1));
@@ -35,14 +35,14 @@ public class UserDataBaseTest {
             LocalDate.of(2000, 1, 1));
 
     @Test
-    void setUser() {
+    void saveUserInDataBaseTest() {
         userDao.save(user);
         User user1 = userDao.getUsersById(user.getId());
         assertEquals(user1.getId(), 1);
     }
 
     @Test
-    void putUser() {
+    void updateUserInDataBaseTest() {
         userDao.save(user);
         userDao.update(userUpdate);
         User user1 = userDao.getUsersById(user.getId());
@@ -51,14 +51,14 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void getUsersById() {
+    void getUsersByIdFromDataBaseTest() {
         userDao.save(user);
         User user1 = userDao.getUsersById(user.getId());
         assertEquals(user, user1);
     }
 
     @Test
-    void getAllUsers() {
+    void getAllUsersFromDataBaseTest() {
         userDao.save(user);
         User user1 = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(user1);
@@ -68,7 +68,7 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void addFriend() {
+    void addFriendToUserTest() {
         userDao.save(user);
         User friend = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(friend);
@@ -78,7 +78,7 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void removeFriend() {
+    void removeFriendFromUserTest() {
         userDao.save(user);
         User friend = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(friend);
@@ -89,7 +89,7 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void listOfFriends() {
+    void getListOfFriendsByUserTest() {
         userDao.save(user);
         User friend = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(friend);
@@ -99,7 +99,7 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void commonFriends() {
+    void getCommonFriendsAtUsersTest() {
         userDao.save(user);
         User user1 = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(user1);
@@ -114,7 +114,7 @@ public class UserDataBaseTest {
     }
 
     @Test
-    void getFriendshipStatus() {
+    void getFriendshipStatusAtUsersTest() {
         userDao.save(user);
         User user1 = new User(2, user.getLogin(), user.getName(), user.getEmail(), user.getBirthday());
         userDao.save(user1);

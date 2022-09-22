@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dao.FriendshipDao;
+import ru.yandex.practicum.filmorate.dao.FriendshipStorage;
 import ru.yandex.practicum.filmorate.dao.mappers.IntegerMapper;
 import ru.yandex.practicum.filmorate.exception.FriendshipError;
 import ru.yandex.practicum.filmorate.model.FriendshipStatus;
@@ -11,12 +12,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class FriendshipDaoImpl implements FriendshipDao {
+@AllArgsConstructor
+public class FriendshipDbStorage implements FriendshipStorage {
     private final JdbcTemplate jdbcTemplate;
-
-    public FriendshipDaoImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Set<Integer> getFriendsByUser(Integer id) {

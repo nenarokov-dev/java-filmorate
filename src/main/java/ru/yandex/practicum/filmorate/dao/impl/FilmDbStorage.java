@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -15,12 +16,9 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
+@AllArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Film save(Film film) {

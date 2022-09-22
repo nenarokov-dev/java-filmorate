@@ -4,7 +4,7 @@ import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 
 import java.util.Set;
 
-public interface FriendshipDao {
+public interface FriendshipStorage {
 
     Set<Integer> getFriendsByUser(Integer id);
 
