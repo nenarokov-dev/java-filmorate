@@ -1,155 +1,160 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.FriendshipStorage;
+import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.AlreadyCreatedException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.FriendshipError;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.service.interfaces.UsersContract;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
-public class UserService {
+@AllArgsConstructor
+public class UserService implements UsersContract {
 
-    private Integer counter = 1;
-    private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserDbStorage userDao;
 
-    @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
-    }
+    private final FriendshipStorage friendshipDao;
 
-    public String addFriend(Integer userId, Integer friendId) {
-        exceptionChecker(userId, friendId);
-        if (!inMemoryUserStorage.getUsersById(userId).getFriendsId().isEmpty()) {
-            if (inMemoryUserStorage.getUsersById(userId).getFriendsId().contains(friendId)) {
-                log.error("Пользователи уже дружат!");
-                throw new FriendshipError("Пользователи уже дружат!");
-            }
-        }
-        inMemoryUserStorage.getUsersById(userId).getFriendsId().add(friendId);
-        inMemoryUserStorage.getUsersById(friendId).getFriendsId().add(userId);
-        String message = "Пользователь " + inMemoryUserStorage.getUsersById(userId).getName() +
-                "(userId=" + userId + ") подружился(-лась) с пользователем " +
-                inMemoryUserStorage.getUsersById(friendId).getName() + "(userId=" + friendId + ").";
-        log.info(message);
-        return message;
-    }
-
-    public String removeFriend(Integer userId, Integer friendId) {
-        exceptionChecker(userId, friendId);
-        if (inMemoryUserStorage.getUsersById(userId).getFriendsId().isEmpty() ||
-                !inMemoryUserStorage.getUsersById(userId).getFriendsId().contains(friendId)) {
-            log.error("Пользователи не дружат!");
-            throw new FriendshipError("Пользователи не дружат!");
-        }
-        inMemoryUserStorage.getUsersById(userId).getFriendsId().remove(friendId);
-        inMemoryUserStorage.getUsersById(friendId).getFriendsId().remove(userId);
-        String message = "Пользователь " + inMemoryUserStorage.getUsersById(userId).getName() +
-                "(userId=" + userId + ") успешно разорвал дружбу с пользователем " +
-                inMemoryUserStorage.getUsersById(friendId).getName() + "(userId=" + friendId + ").";
-        log.info(message);
-        return message;
-    }
-
-    public Set<User> commonFriends(Integer userId, Integer friendId) {
-        exceptionChecker(userId, friendId);
-        log.info("GET enabled. List of common friends(id_1=" + userId +
-                ", id_2=" + friendId + ") was successfully sent.");
-        Set<Integer> commonFriends = new HashSet<>();
-        if (!inMemoryUserStorage.getUsersById(userId).getFriendsId().isEmpty()) {
-            for (Integer id : inMemoryUserStorage.getUsersById(userId).getFriendsId()) {
-                if (inMemoryUserStorage.getUsersById(friendId).getFriendsId().contains(id)) {
-                    commonFriends.add(id);
-                }
-            }
-            return commonFriends.stream().map(e -> inMemoryUserStorage.getUsersById(e)).collect(Collectors.toSet());
-        } else {
-            return Collections.emptySet();
-        }
-
-    }
-
-    public Set<User> listOfFriends(Integer userId) {
-        if (inMemoryUserStorage.isNotContains(userId)) {
-            log.error("User with id=" + userId + " not found");
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
-        }
-        log.info("GET enabled. List of friends(user_id=" + userId + ") was successfully sent.");
-        if (!inMemoryUserStorage.getUsersById(userId).getFriendsId().isEmpty()) {
-            return inMemoryUserStorage.getUsersById(userId).getFriendsId().stream()
-                    .map(e -> inMemoryUserStorage.getUsersById(e)).collect(Collectors.toSet());
-        } else {
-            return Collections.emptySet();
-        }
-    }
-
-    public List<User> getAllUsers() {
-        log.info("GET enabled. List of users was successfully sent.");
-        return inMemoryUserStorage.getAllUsers();
-    }
-
-    public User getUsersById(Integer id) {
-        if (inMemoryUserStorage.isNotContains(id)) {
-            log.error("User with id=" + id + " not found");
-            throw new NotFoundException("Пользователь с id=" + id + " не найден.");
-        }
-        log.info("User with id=" + id + " was successfully sent.");
-        return inMemoryUserStorage.getUsersById(id);
-    }
-
-    public User putUser(User user) {
-        if (inMemoryUserStorage.isNotContains(user.getId())) {
-            log.error("Cannot find user with this id. User with id " + user.getId() + " was not be replaced.");
-            throw new NotFoundException("User with id=" + user.getId() + " not found");
-        } else {
-            log.info("Used POST-method. User with id " + user.getId() + " was added.");
-            return inMemoryUserStorage.putUser(user);
-        }
-    }
-
-    public User setUser(User user) {
-        if (user.getId() == null) {
-            user.setId(generateId());
-        } else {
-            if (user.getId() > counter) {
-                counter = user.getId();
-            }
-        }
-        if (user.getName().equals("")) {
+    @Override
+    public User save(User user) throws SQLException {
+        if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        if (!inMemoryUserStorage.isNotContains(user.getId())) {
-            log.error("User with this id is already added. User was not be added.");
-            throw new AlreadyCreatedException("User with id=" + user.getId() + " is already added.");
-        } else {
-            log.info("Used POST-method. User with id " + user.getId() + " was added.");
-            return inMemoryUserStorage.setUser(user);
+        try {
+            userDao.save(user);
+            log.info("Пользователь user_id=" + user.getId() + " успешно добавлен.");
+            return user;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при добавлении пользователя user_id=" + user.getId() + " в базу данных.";
+            log.error(message);
+            throw new SQLException(message);
+        }
+    }
+
+    @Override
+    public User update(User user) {
+        try {
+            userDao.update(user);
+            log.info("Пользователь user_id=" + user.getId() + " успешно обновлён.");
+            return getUsersById(user.getId());
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при обновлении пользователя user_id=" + user.getId() + ". Пользователь не найден.";
+            log.error(message);
+            throw new NotFoundException(message);
+        }
+    }
+
+    @Override
+    public User getUsersById(Integer id) {
+        try {
+            User user = userDao.getUsersById(id);
+            user.getFriendsId().addAll(friendshipDao.getFriendsByUser(id));
+            log.info("Пользователь user_id=" + id + " успешно получен.");
+            return user;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при извлечении пользователя user_id=" + id + " из базы данных." +
+                    " Пользователь не найден.";
+            log.error(message);
+            throw new NotFoundException(message);
+        }
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            List<User> users = userDao.getAllUsers();
+            users.forEach(e -> e.getFriendsId().addAll(friendshipDao.getFriendsByUser(e.getId())));
+            log.info("Список пользователей успешно получен.");
+            return users;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при получении списка всех пользователей из базы данных.";
+            log.error(message);
+            throw new NotFoundException(message);
+        }
+    }
+
+    @Override
+    public String addFriend(Integer userId, Integer friendId) {
+        exceptionChecker(userId, friendId);
+        try {
+            String message = friendshipDao.addFriend(userId, friendId);
+            log.info(message);
+            return message;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            String message = "Ошибка при добавлении пользователя user_id=" + userId +
+                    " в друзья пользователю user_id=" + friendId + ". Пользователь уже добавлен в друзья.";
+            log.error(message);
+            throw new AlreadyCreatedException(message);
+        }
+    }
+
+    @Override
+    public String removeFriend(Integer userId, Integer friendId) {
+        exceptionChecker(userId, friendId);
+        String message = friendshipDao.removeFriend(userId, friendId);
+        log.info(message);//ошибки не будет т.к. при удалении несуществующей дружбы ничего не произойдёт.
+        return message;
+    }
+
+    @Override
+    public Set<User> listOfFriends(Integer userId) {
+        try {
+            Set<User> listOfFriends = userDao.listOfFriends(userId);
+            listOfFriends.forEach(e -> e.getFriendsId().addAll(friendshipDao.getFriendsByUser(e.getId())));
+            log.info("Список объектов друзей пользователя user_id=" + userId + " успешно получен.");
+            return listOfFriends;
+        } catch (IncorrectResultSizeDataAccessException e) {
+            throw new NotFoundException("Пользователь не найден.");
+        }
+    }
+
+    @Override
+    public Set<User> commonFriends(Integer userId, Integer otherUserId) {
+        exceptionChecker(userId, otherUserId);
+        try {
+            Set<User> friendshipList = userDao.commonFriends(userId, otherUserId);
+            friendshipList.forEach(e -> e.getFriendsId().addAll(friendshipDao.getFriendsByUser(e.getId())));
+            log.info("Список объектов общих друзей пользователей user_id=" + userId + "и user_id=" +
+                    otherUserId + " успешно получен.");
+            return friendshipList;
+        } catch (NotFoundException e) {
+            log.error(e.getMessage());
+            throw new NotFoundException(e.getMessage());
+        }
+    }
+
+    @Override
+    public FriendshipStatus getFriendshipStatus(Integer userId, Integer friendId) {
+        exceptionChecker(userId, friendId);
+        try {
+            FriendshipStatus friendshipStatus = friendshipDao.getFriendshipStatus(userId, friendId);
+            log.info("Статус дружбы пользователей user_id=" + userId + "и user_id=" +
+                    friendId + " успешно получен. Статус дружбы: " + friendshipStatus);
+            return FriendshipStatus.UNCONFIRMED;
+        } catch (FriendshipError e) {
+            log.error(e.getMessage());
+            throw new FriendshipError(e.getMessage());
         }
     }
 
     private void exceptionChecker(Integer userId, Integer friendId) {
-        if (inMemoryUserStorage.isNotContains(userId)) {
-            log.error("Пользователь с id " + userId + " не найден.");
-            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
-        }
-        if (inMemoryUserStorage.isNotContains(friendId)) {
-            log.error("Пользователь с id " + friendId + " не найден.");
-            throw new NotFoundException("Пользователь с id " + friendId + " не найден.");
-        }
+        getUsersById(userId);
+        getUsersById(friendId);
         if (userId.equals(friendId)) {
             log.error("Дружба возможна только между разными пользователями.");
             throw new FriendshipError("Дружба возможна только между разными пользователями.");
         }
-    }
-
-    private Integer generateId() {
-        return counter++;
     }
 
 }
